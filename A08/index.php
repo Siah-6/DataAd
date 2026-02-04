@@ -54,20 +54,58 @@ $creditCardTypeResults = executeQuery($creditCardTypeQuery);
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PUP Airport Flight Logs</title>
+    <title>PUP Airport Flight Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" href="img/favicon.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-    <!-- Header Section -->
+    <!-- Modern Header -->
     <header>
-        <h1>PUP Airport Flight Logs</h1>
-        <p>Data Admin Dashboard</p>
+        <h1><i class="fas fa-plane"></i> PUP Airport Flight Dashboard</h1>
+        <p>Advanced Flight Data Management System</p>
     </header>
+
+    <!-- Stats Cards -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number"><?php echo mysqli_num_rows($flightLogsResults); ?></div>
+            <div class="stat-label">Total Flights</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><?php echo mysqli_num_rows($airlineResults); ?></div>
+            <div class="stat-label">Airlines</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><?php echo mysqli_num_rows($aircraftResults); ?></div>
+            <div class="stat-label">Aircraft Types</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><?php echo mysqli_num_rows($departureResults); ?></div>
+            <div class="stat-label">Airports</div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-container">
+        <div class="chart-card">
+            <h3><i class="fas fa-chart-pie"></i> Airline Distribution</h3>
+            <canvas id="airlineChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3><i class="fas fa-chart-bar"></i> Aircraft Types</h3>
+            <canvas id="aircraftChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3><i class="fas fa-chart-line"></i> Monthly Trends</h3>
+            <canvas id="trendsChart"></canvas>
+        </div>
+    </div>
 
     <!-- Filter Section -->
     <div class="filter-container">
@@ -151,13 +189,30 @@ $creditCardTypeResults = executeQuery($creditCardTypeQuery);
                 </div>
             </div>
             <div class="filter-actions">
-                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <a href="index.php" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+                <button type="button" class="btn btn-success" onclick="exportData()">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
             </div>
         </form>
     </div>
 
-    <!-- Table Section -->
-    <div class="table-container">
+    <!-- Results Section -->
+    <div class="results-container">
+        <div class="results-header">
+            <h3 class="results-title">
+                <i class="fas fa-list"></i> Flight Results
+            </h3>
+            <div class="results-info">
+                <?php echo mysqli_num_rows($flightLogsResults); ?> flights found
+            </div>
+        </div>
+        <div class="table-responsive">
         <table class="table">
             <thead>
             <tr>
@@ -192,9 +247,166 @@ $creditCardTypeResults = executeQuery($creditCardTypeQuery);
             ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Initialize Charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Airline Distribution Pie Chart
+    const airlineCtx = document.getElementById('airlineChart').getContext('2d');
+    new Chart(airlineCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Philippine Airlines', 'Cebu Pacific', 'AirAsia', 'PAL Express'],
+            datasets: [{
+                data: [35, 30, 20, 15],
+                backgroundColor: [
+                    '#2563eb',
+                    '#10b981',
+                    '#f59e0b',
+                    '#ef4444'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#f1f5f9',
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Aircraft Types Bar Chart
+    const aircraftCtx = document.getElementById('aircraftChart').getContext('2d');
+    new Chart(aircraftCtx, {
+        type: 'bar',
+        data: {
+            labels: ['A320', 'B737', 'A330', 'B777', 'Q400'],
+            datasets: [{
+                label: 'Flights',
+                data: [45, 38, 25, 20, 15],
+                backgroundColor: '#3b82f6',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#334155'
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Monthly Trends Line Chart
+    const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+    new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Flights',
+                data: [120, 145, 165, 180, 195, 210],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#334155'
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+
+function exportData() {
+    // Get current URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Create export URL
+    const exportUrl = `export.php?${urlParams.toString()}`;
+    
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.download = 'flight_data.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Add loading states
+document.querySelector('.filter-form').addEventListener('submit', function() {
+    const button = this.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    button.disabled = true;
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 2000);
+});
+</script>
 </body>
 </html>
